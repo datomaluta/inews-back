@@ -12,6 +12,7 @@ class NewsUpdateRequest extends FormRequest
 			'title'    => 'sometimes|required|max:255',
 			'thumbnail'=> 'sometimes|required|image',
 			'body'     => 'sometimes|required',
+			'category' => 'sometimes|required',
 		];
 	}
 }

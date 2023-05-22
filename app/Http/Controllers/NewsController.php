@@ -4,25 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\NewsCreateRequest;
 use App\Http\Requests\NewsUpdateRequest;
+use App\Models\Category;
 use App\Models\News;
 
 class NewsController extends Controller
 {
-	public function getAllNews()
+	public function test()
 	{
-		$allNews = News::latest()->get();
-		$test = News::latest()->paginate(10);
-		return $test;
-		return response()->json(['data'=>$test]);
-	}
-
-	public function getNews($id)
-	{
-		$news = News::find($id);
-		if (!$news) {
-			return response()->json(['message'=>'Record not found'], 404);
-		}
-		return  response()->json(['data'=>$news], 200);
+		$category = Category::find(1);
+		$news = $category->news;
+		return $news;
 	}
 
 	public function create(NewsCreateRequest $request)
@@ -33,9 +24,16 @@ class NewsController extends Controller
 
 		$attributes['thumbnail'] = $path;
 
-		News::create($attributes);
+		$news = News::create($attributes);
 
-		return ['message'=>'News Created Succesfully!'];
+		$categoryIds = array_column(json_decode($attributes['category']), 'value');
+		$categoryCreate = $news->categories()->sync($categoryIds);
+
+		if ($news && $categoryCreate) {
+			return response()->json(['News Created Successfully'], 200);
+		} else {
+			return response()->json(['message'=>'Something went wrong with news create!'], 404);
+		}
 	}
 
 	public function update($id, NewsUpdateRequest $request)
@@ -48,6 +46,13 @@ class NewsController extends Controller
 		}
 
 		$news->update($attributes);
+
+		// Get the updated category IDs
+		$categoryIds = array_column(json_decode($attributes['category']), 'value');
+
+		// Update the categories
+		$categoryUpdate = $news->categories()->sync($categoryIds);
+
 		return response()->json(['news'=>$attributes]);
 	}
 
@@ -60,5 +65,54 @@ class NewsController extends Controller
 		} else {
 			return ['message'=>'Something went wrong with delete!'];
 		}
+	}
+
+	public function newsByCategory($category, $count)
+	{
+		$categorydb = Category::where('name', $category)->first();
+
+		if (!$categorydb) {
+			return response()->json(['message'=>'Record not found'], 404);
+		}
+
+		if ($count === 'all') {
+			$news = $categorydb->news()->latest()->paginate(2);
+		} else {
+			$news = $categorydb->news()->latest()->take($count)->get();
+		}
+
+		return response()->json(['data'=>$news], 200);
+	}
+
+	public function getAllNewsByCategoryForEachPage($category)
+	{
+		$categorydb = Category::where('name', $category)->first();
+
+		if (!$categorydb) {
+			return response()->json(['message'=>'Record not found'], 404);
+		}
+
+		$allNews = $categorydb->news()->latest()->paginate(2);
+		return response()->json(['data'=>$allNews], 200);
+	}
+
+	public function getAllNews()
+	{
+		$allNews = News::latest()->paginate(4);
+
+		if (!$allNews) {
+			return response()->json(['message'=>'Record not found'], 404);
+		}
+
+		return response()->json(['data'=>$allNews], 200);
+	}
+
+	public function getNews($id)
+	{
+		$news = News::find($id);
+		if (!$news) {
+			return response()->json(['message'=>'Record not found'], 404);
+		}
+		return  response()->json(['data'=>$news, 'category'=>$news->categories], 200);
 	}
 }

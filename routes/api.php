@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,8 +29,7 @@ Route::middleware('guest')->group(
 
 Route::get('/news', [NewsController::class, 'getAllNews']);
 Route::get('/news/{category}/{count}', [NewsController::class, 'newsByCategory']);
-Route::get('/news/three-for-home', [NewsController::class, 'threeNewsForHome']);
 Route::get('news/{id}', [NewsController::class, 'getNews']);
-Route::get('/test', [NewsController::class, 'test']);
 Route::get('/categories', [CategoryController::class, 'getAllCategories']);
 Route::get('/allnews/{category}', [NewsController::class, 'getAllNewsByCategoryForEachPage']);
+Route::get('/search', [SearchController::class, 'search']);

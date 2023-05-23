@@ -76,7 +76,7 @@ class NewsController extends Controller
 		}
 
 		if ($count === 'all') {
-			$news = $categorydb->news()->latest()->paginate(2);
+			$news = $categorydb->news()->latest()->paginate(8);
 		} else {
 			$news = $categorydb->news()->latest()->take($count)->get();
 		}
@@ -92,13 +92,13 @@ class NewsController extends Controller
 			return response()->json(['message'=>'Record not found'], 404);
 		}
 
-		$allNews = $categorydb->news()->latest()->paginate(2);
+		$allNews = $categorydb->news()->latest()->paginate(8);
 		return response()->json(['data'=>$allNews], 200);
 	}
 
 	public function getAllNews()
 	{
-		$allNews = News::latest()->paginate(4);
+		$allNews = News::latest()->paginate(8);
 
 		if (!$allNews) {
 			return response()->json(['message'=>'Record not found'], 404);
